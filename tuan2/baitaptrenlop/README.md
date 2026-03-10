@@ -1,45 +1,38 @@
-# Flask Backend API - Client-Server Architecture
+# Flask Backend API - Cacheable Architecture
 
-Dự án này minh họa việc xây dựng một Backend API bằng Flask mạnh mẽ theo kiến trúc **Client-Server**. Đây là một phần quan trọng của REST (Representational State Transfer).
+Dự án này minh họa việc áp dụng nguyên tắc **Cacheable** trong kiến trúc REST giúp tối ưu hóa hiệu năng và giảm tải dữ liệu cho hệ thống.
 
-## Các tính chất của kiến trúc Client-Server đã áp dụng:
+## Các cơ chế Cache đã áp dụng:
 
-### 1. Separation of Concerns (Phân tách mối quan tâm)
+### 1. Cache-Control Header
 
-Kiến trúc này tách rời giao diện người dùng (**Client**) và lưu trữ dữ liệu (**Server**) thành hai phần riêng biệt.
+- Định rõ dữ liệu có thể được cache trong bao lâu và ai có quyền cache.
+- **Public**: Cho phép cả Browser và Proxy (CDN) cache dữ liệu (`max-age=60`).
+- **Private**: Chỉ cho phép Browser người dùng cache (`max-age=120`).
+- **No-store**: Cấm tuyệt đối việc cache dữ liệu giỏ hàng (Stateful).
 
-- **Client**: Chịu trách nhiệm hiển thị giao diện, quản lý trạng thái phiên làm việc (session state) của người dùng. Client được thiết kế linh hoạt, có thể là Web (React, Vue), Mobile (Android, iOS) hoặc các công cụ test API (Postman, cURL).
-- **Server**: Chịu trách nhiệm về cơ sở dữ liệu, logic nghiệp vụ, bảo mật và khả năng mở rộng. Server không quan tâm đến việc dữ liệu được hiển thị trên giao diện như thế nào.
+### 2. ETag (Entity Tag)
 
-### 2. Sự độc lập giữa Client và Server
+- Server tạo hash (dấu vân tay) cho nội dung dữ liệu trả về.
+- Khi dữ liệu không đổi, ETag giữ nguyên, giúp Client xác định nội dung mình đang có là mới nhất hay chưa.
 
-- Việc thay đổi giao diện người dùng (ví dụ: từ mobile app sang web app) không ảnh hưởng đến server.
-- Việc thay đổi database (ví dụ: từ MySQL sang MongoDB) không ảnh hưởng tới client, miễn là các API endpoints không thay đổi cấu trúc trả về.
+### 3. Conditional Requests (304 Not Modified)
 
-### 3. Giao tiếp qua các giao thức chuẩn (HTTP)
+- Client gửi request kèm `If-None-Match: <etag_cu>`.
+- Nếu dữ liệu không đổi, Server trả về mã **304** (không truyền body), tiết kiệm tối đa băng thông.
 
-Việc giao tiếp được thực hiện thông qua các HTTP methods chuẩn như:
+## Cách chạy và Test Cache
 
-- `GET`: Lấy thông tin từ server.
-- `POST`: Gửi dữ liệu mới lên server.
-- `PUT/PATCH`: Cập nhật dữ liệu trên server.
-- `DELETE`: Xóa dữ liệu trên server.
+1. Chạy server: `python server.py`
+2. Test bằng Postman hoặc Browser Network Tab:
+   - Gọi `GET /api/products` lần đầu: Nhận dữ liệu + `ETag` trong header.
+   - Gọi `GET /api/products` lần hai (Thêm header `If-None-Match` giá trị ETag cũ): Server trả về `304 Not Modified`.
+   - Nếu thực hiện `POST` thêm sản phẩm: ETag sẽ thay đổi, request tiếp theo sẽ nhận mã `200 OK` với dữ liệu mới.
 
-### 4. Định dạng dữ liệu chung (JSON)
+---
 
-Dữ liệu được trao đổi dưới định dạng JSON, giúp việc giao tiếp của client và server trở nên nhất quán và dễ dàng xử lý trên mọi nền tảng.
+## Các nguyên tắc REST khác vẫn duy trì:
 
-## Cách chạy Project
-
-1. Di chuyển vào thư mục dự án: `cd tuan2/baitaptrenlop/`
-2. Cài đặt Flask nếu chưa có: `pip install Flask`
-3. Chạy server: `python server.py`
-4. Truy cập các API tại `http://127.0.0.1:5000/api/products`
-
-## Các API Endpoints
-
-- `GET /api/products`: Lấy toàn bộ danh sách sản phẩm.
-- `GET /api/products/<id>`: Lấy chi tiết một sản phẩm.
-- `POST /api/products`: Thêm sản phẩm mới.
-- `PUT /api/products/<id>`: Cập nhật sản phẩm.
-- `DELETE /api/products/<id>`: Xóa sản phẩm.
+1. **Stateless**: Dùng API Key (`X-API-KEY`).
+2. **Stateful Example**: Giỏ hàng dùng Session/Cookie.
+3. **Uniform Interface**: URI, JSON, HATEOAS, Self-descriptive.
