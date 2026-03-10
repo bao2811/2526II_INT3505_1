@@ -101,13 +101,6 @@ def add_to_cart_stateful(product_id):
         return response, 200
     return jsonify({"error": "Product not found"}), 404
 
-@app.route('/api/cart', methods=['GET'])
-def get_cart_stateful():
-    cart = session.get('cart', [])
-    response = make_response(jsonify({"cart": cart}))
-    response.headers['Cache-Control'] = 'no-cache, must-revalidate'
-    return response, 200
-
 @app.route('/api/products', methods=['POST'])
 def add_product():
     if not check_stateless_auth():
@@ -121,6 +114,13 @@ def add_product():
     products.append(new_product)
     # Vô hiệu hóa cache bằng cách thay đổi dữ liệu (Response mới sẽ có ETag mới)
     return jsonify(add_links(new_product)), 201
+
+@app.route('/api/cart', methods=['GET'])
+def get_cart_stateful():
+    cart = session.get('cart', [])
+    response = make_response(jsonify({"cart": cart}))
+    response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+    return response, 200
 
 @app.route('/api/products/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
