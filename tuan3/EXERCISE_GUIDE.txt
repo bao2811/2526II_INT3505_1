@@ -1,0 +1,982 @@
+================================================================================
+TUẦN 3: NGUYÊN TẮC THIẾT KẾ API - HƯỚNG DẪN THỰC HÀNH TỪNG FLOW
+================================================================================
+
+================================================================================
+CHUẨN BỊ BAN ĐẦU
+================================================================================
+
+1. Cài đặt Dependencies:
+   cd /g/2526II_INT3505_1/tuan3
+   pip install -r requirements.txt
+
+   Packages cần thiết:
+   - Flask==2.3.2 (Web framework)
+   - Werkzeug==2.3.6 (WSGI utilities)
+   - pytest==7.4.0 (Testing framework)
+   - pytest-cov==4.1.0 (Test coverage)
+
+2. Kiểm tra cài đặt:
+   python -c "import flask; print(f'Flask {flask.__version__} installed')"
+
+================================================================================
+FLOW 1: BEST PRACTICES (Port 5000)
+================================================================================
+
+BƯỚC 1: Đọc Tài liệu
+   - File: /tuan3/1-best-practices/README.md
+   - Học: Consistency, Clarity, Extensibility
+   - Thời gian: 30 phút
+
+BƯỚC 2: Chạy ứng dụng Flask (Khuyến nghị dùng CLI)
+   cd /g/2526II_INT3505_1/tuan3/1-best-practices
+   python -m flask run --port 5000
+
+   Lưu ý: Bạn vẫn có thể chạy `python app.py`, nhưng `python -m flask run` là cách chạy 
+   chuẩn của Flask 2.3.2 giúp quản lý môi trường và debug tốt hơn.
+
+   Kết quả mong đợi:
+   ✅ Server running on http://localhost:5000
+   ✅ Message về các khái niệm được minh họa
+
+BƯỚC 3: Test các endpoint
+   Sử dụng curl hoặc Postman, test:
+
+   3.1) List users (GET):
+       curl http://localhost:5000/api/v1/users
+
+       Kiểm tra:
+       ✅ Status code: 200
+       ✅ Response có: status, data, meta
+       ✅ Meta có: total, page, limit, pages
+
+   3.2) List users với pagination (GET):
+       curl "http://localhost:5000/api/v1/users?page=1&limit=5"
+
+       Kiểm tra:
+       ✅ Meta.page = 1, limit = 5
+       ✅ Data array có tối đa 5 items
+
+   3.3) Get single user (GET):
+       curl http://localhost:5000/api/v1/users/1
+
+       Kiểm tra:
+       ✅ Status code: 200
+       ✅ Data là single object (không array)
+
+   3.4) Create user (POST):
+       curl -X POST http://localhost:5000/api/v1/users \
+         -H "Content-Type: application/json" \
+         -d '{"name":"John","email":"john@example.com"}'
+
+       Kiểm tra:
+       ✅ Status code: 201 Created
+       ✅ Response có created_at timestamp
+
+   3.5) Update user (PUT):
+       curl -X PUT http://localhost:5000/api/v1/users/1 \
+         -H "Content-Type: application/json" \
+         -d '{"name":"John Updated","email":"john.updated@example.com"}'
+
+       Kiểm tra:
+       ✅ Status code: 200
+       ✅ Data có updated name
+
+   3.6) Delete user (DELETE):
+       curl -X DELETE http://localhost:5000/api/v1/users/1
+
+       Kiểm tra:
+       ✅ Status code: 204 No Content
+       ✅ Response body empty
+
+   3.7) Error handling (404):
+       curl http://localhost:5000/api/v1/users/999
+
+       Kiểm tra:
+       ✅ Status code: 404
+       ✅ Error format: {status: error, error: {code, message}}
+
+   3.8) Validation error (422):
+       curl -X POST http://localhost:5000/api/v1/users \
+         -H "Content-Type: application/json" \
+         -d '{}'
+
+================================================================================
+FLOW 2: NAMING CONVENTIONS (Port 5001)
+================================================================================
+
+BƯỚC 1: Đọc Tài liệu
+   - File: /tuan3/2-naming-conventions/README.md
+   - Học: Plural nouns, Lowercase, Hyphens, Versioning
+   - Thời gian: 45 phút
+
+BƯỚC 2: Chạy ứng dụng Flask (Khuyến nghị dùng CLI)
+   cd /g/2526II_INT3505_1/tuan3/2-naming-conventions
+   python -m flask run --port 5001
+
+   Kết quả mong đợi:
+   ✅ Server running on http://localhost:5001
+   ✅ Minh họa sự khác biệt giữa naming TỐT và XẤU
+
+BƯỚC 3: Thử nghiệm Naming Tốt (v1)
+   Sử dụng curl test các endpoint chuẩn:
+
+   3.1) List user-profiles (Hyphenated, Plural, Lowercase):
+       curl http://localhost:5001/api/v1/user-profiles
+
+   3.2) List data với Query parameter chuẩn (Hyphenated):
+       curl "http://localhost:5001/api/v1/user-profiles?sort-by=user_name&order=desc"
+
+   3.3) Nested resource (Đúng quy tắc):
+       curl http://localhost:5001/api/v1/user-profiles/1/orders
+
+BƯỚC 4: So sánh với Naming Xấu (Legacy)
+   Thử nghiệm các endpoint không chuẩn để thấy sự khó khăn:
+
+   4.1) Endpoint sai quy tắc:
+       curl http://localhost:5001/api/GetUserById/1
+       (So sánh với /api/v1/user-profiles/1)
+
+================================================================================
+FLOW 3: API ENDPOINTS - FULL CRUD (Port 5002)
+================================================================================
+
+BƯỚC 1: Đọc Tài liệu
+   - File: /tuan3/3-api-endpoints/README.md
+   - Học: CRUD mapping, Nested resources, Status codes (201, 204, 422)
+   - Thời gian: 60 phút
+
+BƯỚC 2: Chạy ứng dụng Flask (Khuyến nghị dùng CLI)
+   cd /g/2526II_INT3505_1/tuan3/3-api-endpoints
+   python -m flask run --port 5002
+
+   Kết quả mong đợi:
+   ✅ Server running on http://localhost:5002
+   ✅ Hệ thống Blog mini với Posts, Comments, Likes
+
+BƯỚC 3: Thực hiện chu kỳ CRUD đầy đủ (Posts)
+
+   3.1) READ (List) - Lấy danh sách bài viết:
+       curl http://localhost:5002/api/v1/posts
+
+   3.2) CREATE - Tạo bài viết mới (Status 201):
+       curl -X POST http://localhost:5002/api/v1/posts \
+         -H "Content-Type: application/json" \
+         -d '{"title":"New API","content":"REST is easy","author-id":1}'
+
+   3.3) UPDATE (Full) - Cập nhật toàn bộ bài viết (PUT):
+       curl -X PUT http://localhost:5002/api/v1/posts/1 \
+         -H "Content-Type: application/json" \
+         -d '{"title":"Updated Title","content":"New Content","author-id":1,"status":"published"}'
+
+   3.4) UPDATE (Partial) - Cập nhật một phần (PATCH):
+       curl -X PATCH http://localhost:5002/api/v1/posts/1 \
+         -H "Content-Type: application/json" \
+         -d '{"status":"draft"}'
+
+   3.5) DELETE - Xóa bài viết (Status 204):
+       curl -X DELETE http://localhost:5002/api/v1/posts/1
+
+BƯỚC 4: Test Nested Resources (Comments trên Post)
+
+   4.1) List comments của Post 1:
+       curl http://localhost:5002/api/v1/posts/1/comments
+
+   4.2) Add comment vào Post 1:
+       curl -X POST http://localhost:5002/api/v1/posts/1/comments \
+         -H "Content-Type: application/json" \
+         -d '{"content":"Nice post!","author-id":2}'
+
+================================================================================
+FLOW 4: DESIGN EVALUATION & FLOW 5: CASE STUDY
+================================================================================
+
+BƯỚC 1: Đánh giá thiết kế (Flow 4)
+   - Đọc /tuan3/4-design-evaluation/README.md
+   - Chạy app: python /tuan3/4-design-evaluation/app.py
+   - Sử dụng Rubric đánh giá API của chính mình vừa làm ở Flow 3.
+
+BƯỚC 2: Phân tích Case Study lỗi (Flow 5)
+   - Đọc /tuan3/5-case-study-poorly-designed-api/README.md
+   - Tìm ra 10 lỗi thiết kế trong ví dụ E-commerce.
+   - So sánh với giải pháp Refactored trong file README.
+
+================================================================================
+QUY TRÌNH KIỂM THỬ TỔNG HỢP (TESTING)
+================================================================================
+
+1. Chạy toàn bộ unit tests:
+   cd /g/2526II_INT3505_1/tuan3
+   pytest
+
+2. Xem báo cáo chi tiết:
+   pytest -v
+
+3. Kiểm tra độ bao phủ code (Coverage):
+   pytest --cov=.
+
+
+       Kiểm tra:
+       ✅ Status code: 422
+       ✅ Error có details array
+
+BƯỚC 4: Chạy Unit Tests
+   pytest test_app.py -v
+
+   Hoặc chạy test cụ thể:
+   pytest test_app.py::TestBestPracticesAPI::test_list_users_response_format -v
+   pytest test_app.py::TestBestPracticesAPI::test_create_user_response_format -v
+   pytest test_app.py::TestBestPracticesAPI::test_pagination_support -v
+
+   Kết quả mong đợi:
+   ✅ Tất cả tests pass (PASSED)
+   ✅ Không có FAILED tests
+
+BƯỚC 5: Phân tích Kết quả
+   - Nhận xét về consistency (response format giống nhau)
+   - Nhận xét về clarity (endpoint names rõ ràng)
+   - Nhận xét về extensibility (versioning, pagination)
+
+BƯỚC 6: Tự thực hành
+   Viết thêm API endpoint cho products:
+   - GET /api/v1/products (list)
+   - POST /api/v1/products (create)
+   - GET /api/v1/products/{id} (single)
+
+   Thử implement với cùng best practices
+
+================================================================================
+FLOW 2: NAMING CONVENTIONS (Port 5001)
+================================================================================
+
+BƯỚC 1: Đọc Tài liệu
+   - File: /tuan3/2-naming-conventions/README.md
+   - Học: Plural nouns, lowercase, hyphens, versioning
+   - Thời gian: 45 phút
+
+BƯỚC 2: Chạy ứng dụng Flask
+   cd /g/2526II_INT3505_1/tuan3/2-naming-conventions
+   python app.py
+
+   Kết quả mong đợi:
+   ✅ Server running on http://localhost:5001
+
+BƯỚC 3: Test Naming Conventions
+
+   3.1) Plural nouns - /user-profiles (not /user-profile):
+       curl http://localhost:5001/api/v1/user-profiles
+
+       ✅ Endpoint sử dụng plural
+
+   3.2) Lowercase - /api/v1/ (not /API/V1/):
+       curl http://localhost:5001/api/v1/user-profiles
+
+       ✅ Tất cả lowercase
+
+   3.3) Hyphens - /user-profiles (not /user_profiles):
+       curl http://localhost:5001/api/v1/user-profiles
+
+       ✅ Multi-word dùng hyphens, không underscores
+
+   3.4) Query params với hyphens:
+       curl "http://localhost:5001/api/v1/user-profiles?sort-by=full_name&order=desc"
+
+       ✅ Query params dùng hyphens
+
+   3.5) Nested resources:
+       curl http://localhost:5001/api/v1/user-profiles/1/orders
+
+       ✅ Pattern: /parent/{id}/child
+
+   3.6) Actions với hyphens:
+       curl -X POST http://localhost:5001/api/v1/user-profiles/1/verify-email \
+         -H "Content-Type: application/json" \
+         -d '{}'
+
+       ✅ Action endpoint /verify-email dùng hyphens
+
+   3.7) Payment methods (multi-word resource):
+       curl http://localhost:5001/api/v1/user-profiles/1/payment-methods
+
+       ✅ /payment-methods dùng hyphens
+
+   3.8) Bad naming (should fail):
+       curl http://localhost:5001/api/v1/UserProfiles
+
+       ✅ Returns 404 (không tồn tại)
+
+BƯỚC 4: Chạy Unit Tests
+   pytest test_app.py -v
+
+   Test cụ thể:
+   pytest test_app.py::TestNamingConventionsAPI::test_plural_nouns_user_profiles -v
+   pytest test_app.py::TestNamingConventionsAPI::test_hyphens_for_multi_word_resources -v
+   pytest test_app.py::TestNamingConventionsAPI::test_query_params_use_hyphens -v
+
+   Kết quả mong đợi:
+   ✅ Tất cả tests pass
+
+BƯỚC 5: So sánh Good vs Bad
+
+   GOOD ✅                          BAD ❌
+   /user-profiles                   /UserProfile
+   /payment-methods                 /payment_methods
+   ?sort-by=name                    ?sortBy=name
+   /verify-email                    /verifyEmail
+   /api/v1/                         /api/V1/
+   /users/{id}/orders               /users/getOrders/{id}
+
+BƯỚC 6: Tự thực hành
+   Thiết kế API endpoint cho:
+   - /api/v1/blog-posts (resources)
+   - /api/v1/blog-posts/{id}/comments (nested)
+   - /api/v1/blog-posts/{id}/publish (action)
+
+   Kiểm tra:
+   ✅ Dùng plural nouns
+   ✅ Dùng lowercase
+   ✅ Dùng hyphens cho multi-word
+   ✅ Có versioning
+
+================================================================================
+FLOW 3: API ENDPOINTS - CRUD (Port 5002)
+================================================================================
+
+BƯỚC 1: Đọc Tài liệu
+   - File: /tuan3/3-api-endpoints/README.md
+   - Học: CRUD, HTTP methods, status codes
+   - Thời gian: 1 giờ
+
+BƯỚC 2: Chạy ứng dụng Flask
+   cd /g/2526II_INT3505_1/tuan3/3-api-endpoints
+   python app.py
+
+   Kết quả mong đợi:
+   ✅ Server running on http://localhost:5002
+
+BƯỚC 3: Test CRUD Operations
+
+   3.1) CREATE - POST /posts (201 Created):
+       curl -X POST http://localhost:5002/api/v1/posts \
+         -H "Content-Type: application/json" \
+         -d '{
+           "title":"My First Post",
+           "content":"This is my first post",
+           "author_id":1
+         }'
+
+       Kiểm tra:
+       ✅ Status: 201 Created
+       ✅ Response có id, created_at
+       ✅ Response format: {status, data, meta}
+
+   3.2) READ - GET /posts (200 OK):
+       curl http://localhost:5002/api/v1/posts
+
+       Kiểm tra:
+       ✅ Status: 200 OK
+       ✅ Data là array of posts
+       ✅ Có pagination meta
+
+   3.3) READ - GET /posts/{id} (200 OK):
+       curl http://localhost:5002/api/v1/posts/1
+
+       Kiểm tra:
+       ✅ Status: 200 OK
+       ✅ Data là single object (không array)
+
+   3.4) UPDATE - PUT /posts/{id} (200 OK - Full update):
+       curl -X PUT http://localhost:5002/api/v1/posts/1 \
+         -H "Content-Type: application/json" \
+         -d '{
+           "title":"Updated Title",
+           "content":"Updated content",
+           "status":"published"
+         }'
+
+       Kiểm tra:
+       ✅ Status: 200 OK
+       ✅ Tất cả fields được update
+
+   3.5) UPDATE - PATCH /posts/{id} (200 OK - Partial update):
+       curl -X PATCH http://localhost:5002/api/v1/posts/1 \
+         -H "Content-Type: application/json" \
+         -d '{"status":"draft"}'
+
+       Kiểm tra:
+       ✅ Status: 200 OK
+       ✅ Chỉ status được update, content không thay đổi
+
+   3.6) DELETE /posts/{id} (204 No Content):
+       curl -X DELETE http://localhost:5002/api/v1/posts/1
+
+       Kiểm tra:
+       ✅ Status: 204 No Content
+       ✅ Response body empty
+
+BƯỚC 4: Test Status Codes
+
+   4.1) 201 Created (POST success):
+       curl -X POST http://localhost:5002/api/v1/posts \
+         -H "Content-Type: application/json" \
+         -d '{"title":"Test","content":"Test","author_id":1}'
+
+       ✅ Status: 201
+
+   4.2) 404 Not Found:
+       curl http://localhost:5002/api/v1/posts/9999
+
+       ✅ Status: 404
+       ✅ Error: POST_NOT_FOUND
+
+   4.3) 422 Validation Error:
+       curl -X POST http://localhost:5002/api/v1/posts \
+         -H "Content-Type: application/json" \
+         -d '{}'
+
+       ✅ Status: 422
+       ✅ Error có details về missing fields
+
+BƯỚC 5: Test Nested Resources
+
+   5.1) GET comments of post:
+       curl http://localhost:5002/api/v1/posts/1/comments
+
+       ✅ Returns comments for post 1
+
+   5.2) POST comment to post:
+       curl -X POST http://localhost:5002/api/v1/posts/1/comments \
+         -H "Content-Type: application/json" \
+         -d '{"content":"Great post!","author_id":2}'
+
+       ✅ Status: 201 Created
+
+   5.3) DELETE comment:
+       curl -X DELETE http://localhost:5002/api/v1/posts/1/comments/1
+
+       ✅ Status: 204 No Content
+
+BƯỚC 6: Test Actions
+
+   6.1) Publish post:
+       curl -X POST http://localhost:5002/api/v1/posts/1/publish \
+         -H "Content-Type: application/json" \
+         -d '{}'
+
+       ✅ Status: 200 OK
+       ✅ Post status = published
+
+   6.2) Unpublish post:
+       curl -X POST http://localhost:5002/api/v1/posts/1/unpublish \
+         -H "Content-Type: application/json" \
+         -d '{}'
+
+       ✅ Status: 200 OK
+       ✅ Post status = draft
+
+BƯỚC 7: Chạy Unit Tests
+   pytest test_app.py -v
+
+   Test CRUD:
+   pytest test_app.py::TestCRUDEndpoints::test_create_post_returns_201 -v
+   pytest test_app.py::TestCRUDEndpoints::test_read_single_post_returns_200 -v
+   pytest test_app.py::TestCRUDEndpoints::test_update_full_put_returns_200 -v
+   pytest test_app.py::TestCRUDEndpoints::test_delete_returns_204 -v
+
+   Kết quả mong đợi:
+   ✅ Tất cả tests pass
+
+BƯỚC 8: Tự thực hành
+   Tạo CRUD API cho Product:
+   - POST /api/v1/products (201)
+   - GET /api/v1/products (200)
+   - GET /api/v1/products/{id} (200)
+   - PUT /api/v1/products/{id} (200)
+   - PATCH /api/v1/products/{id} (200)
+   - DELETE /api/v1/products/{id} (204)
+
+================================================================================
+FLOW 4: DESIGN EVALUATION (Port 5003)
+================================================================================
+
+BƯỚC 1: Đọc Tài liệu
+   - File: /tuan3/4-design-evaluation/README.md
+   - Học: Evaluation framework, scoring
+   - Thời gian: 45 phút
+
+BƯỚC 2: Chạy ứng dụng Flask
+   cd /g/2526II_INT3505_1/tuan3/4-design-evaluation
+   python app.py
+
+   Kết quả mong đợi:
+   ✅ Server running on http://localhost:5003
+
+BƯỚC 3: Xem Evaluation Framework
+
+   3.1) Get evaluation framework:
+       curl http://localhost:5003/api/v1/framework
+
+       Kiểm tra:
+       ✅ Response có 5 criteria
+       ✅ Mỗi criterion có weight=20
+       ✅ Tất cả weights = 100
+
+   3.2) Get scoring guidance:
+       curl http://localhost:5003/api/v1/scoring-guidance
+
+       Kiểm tra:
+       ✅ Có scoring scale (0-100)
+       ✅ Có interpretation cho mỗi range
+
+BƯỚC 4: Xem Ví dụ Evaluation
+
+   4.1) Good API (90+):
+       curl http://localhost:5003/api/v1/evaluations/good
+
+       Phân tích:
+       - Total score >= 90
+       - Rating: Excellent
+       - Strengths: list các điểm tốt
+       - Issues: có vài lỗi nhỏ
+
+   4.2) Fair API (70-79):
+       curl http://localhost:5003/api/v1/evaluations/fair
+
+       Phân tích:
+       - Total score: 70-79
+       - Rating: Fair
+       - Issues: nhiều vấn đề cần fix
+
+   4.3) Poor API (<70):
+       curl http://localhost:5003/api/v1/evaluations/poor
+
+       Phân tích:
+       - Total score < 70
+       - Rating: Poor
+       - Issues: rất nhiều vấn đề
+       - Cần significant refactoring
+
+BƯỚC 5: Hiểu 5 Criteria
+
+   5.1) Consistency (20 pts):
+       - Same response format?
+       - Same error format?
+       - Correct HTTP methods?
+       - Proper status codes?
+
+   5.2) Clarity (20 pts):
+       - Clear endpoint names?
+       - Clear response fields?
+       - Good documentation?
+       - Helpful error messages?
+
+   5.3) Extensibility (20 pts):
+       - Has versioning?
+       - Backward compatible?
+       - Modular design?
+       - Optional fields?
+
+   5.4) Correctness (20 pts):
+       - HTTP methods correct?
+       - Status codes correct?
+       - Nested resources OK?
+       - All CRUD operations?
+
+   5.5) Performance/Security (20 pts):
+       - Pagination?
+       - Filtering?
+       - Sorting?
+       - Validation?
+       - Rate limiting?
+
+BƯỚC 6: Chạy Unit Tests
+   pytest test_app.py -v
+
+   Test evaluator:
+   pytest test_app.py::TestEvaluationFramework::test_evaluator_creation -v
+   pytest test_app.py::TestEvaluationFramework::test_evaluator_scoring -v
+   pytest test_app.py::TestEvaluationFramework::test_evaluator_rating_excellent -v
+
+   Kết quả mong đợi:
+   ✅ Tất cả tests pass
+
+BƯỚC 7: Tự thực hành
+   Evaluate một API mà bạn biết:
+   - Đánh giá 5 criteria
+   - Ghi score cho mỗi criterion
+   - Tính total (average)
+   - Xác định rating
+
+================================================================================
+FLOW 5: CASE STUDY - POORLY DESIGNED API (Port 5004)
+================================================================================
+
+BƯỚC 1: Đọc Tài liệu
+   - File: /tuan3/5-case-study-poorly-designed-api/README.md
+   - Học: 10 API anti-patterns
+   - Thời gian: 1 giờ
+
+BƯỚC 2: Chạy ứng dụng Flask
+   cd /g/2526II_INT3505_1/tuan3/5-case-study-poorly-designed-api
+   python app.py
+
+   Kết quả mong đợi:
+   ✅ Server running on http://localhost:5004
+
+BƯỚC 3: Xem 10 Issues
+
+   3.1) Get issues summary:
+       curl http://localhost:5004/api/issues-summary | python -m json.tool
+
+       Kiểm tra:
+       ✅ Total issues: 10
+       ✅ Critical: 4
+       ✅ High: 6
+
+BƯỚC 4: Phân tích từng Issue
+
+   Issue 1: Verb-based endpoints
+   ❌ /api/getallproducts
+   ❌ /api/getproduct
+   ✅ Fix: /api/v1/products, /api/v1/products/{id}
+
+   Issue 2: Inconsistent response format
+   ❌ getallproducts: {code, response}
+   ❌ getproduct: {status, data}
+   ✅ Fix: Everywhere {status, data, meta}
+
+   Issue 3: Wrong HTTP methods
+   ❌ GET /api/logout (CSRF!)
+   ❌ POST /api/searchItems (should be GET)
+   ✅ Fix: POST /auth/logout, GET /products?search=
+
+   Issue 4: Inconsistent parameter names
+   ❌ prod_id, OrderID, orderid
+   ✅ Fix: Always use 'id' or consistent naming
+
+   Issue 5: No versioning
+   ❌ /api/getallproducts
+   ✅ Fix: /api/v1/products
+
+   Issue 6: No pagination
+   ❌ /api/products returns ALL
+   ✅ Fix: /api/v1/products?page=1&limit=10
+
+   Issue 7: No filtering/sorting
+   ❌ Limited query support
+   ✅ Fix: ?status=active&sort-by=price
+
+   Issue 8: Wrong status codes
+   ❌ POST returns 200 (not 201)
+   ❌ No 422 for validation
+   ✅ Fix: 201 Created, 422 Validation Error
+
+   Issue 9: No nested resources
+   ❌ Flat structure
+   ✅ Fix: /orders/{id}/items
+
+   Issue 10: Security issues
+   ❌ GET logout = CSRF
+   ❌ No auth checking
+   ✅ Fix: POST/DELETE for state changes, auth headers
+
+BƯỚC 5: Test các endpoints tồi tệ
+
+   5.1) Test verb-based:
+       curl http://localhost:5004/api/getallproducts
+
+       ❌ Nhận xét: Endpoint name có verb
+
+   5.2) Test inconsistent format:
+       curl http://localhost:5004/api/getallproducts
+       curl http://localhost:5004/api/getproduct?prod_id=1
+
+       ❌ Nhận xét: Response format khác nhau
+
+   5.3) Test wrong HTTP method:
+       curl http://localhost:5004/api/logout
+
+       ❌ Nhận xét: GET logout = CSRF vulnerability
+
+BƯỚC 6: Xem refactored comparison
+
+   curl http://localhost:5004/api/refactored-comparison | python -m json.tool
+
+   Kiểm tra:
+   ✅ Có before/after cho mỗi issue
+   ✅ Good endpoint với /v1/ versioning
+
+BƯỚC 7: Chạy Unit Tests
+   pytest test_app.py -v
+
+   Test issues:
+   pytest test_app.py::TestPoorlyDesignedAPI::test_verb_based_endpoints_are_bad -v
+   pytest test_app.py::TestPoorlyDesignedAPI::test_inconsistent_response_issue_identified -v
+   pytest test_app.py::TestPoorlyDesignedAPI::test_total_issues_count -v
+
+   Kết quả mong đợi:
+   ✅ Tất cả tests pass
+   ✅ 10 issues được xác định
+
+BƯỚC 8: Tự thực hành
+   - Tìm một poorly designed API
+   - Liệt kê issues tương tự
+   - Assign severity levels
+   - Propose refactored design
+
+================================================================================
+FLOW 6: PEER REVIEW - WELL-DESIGNED API (Port 5005)
+================================================================================
+
+BƯỚC 1: Đọc Tài liệu
+   - File: /tuan3/6-peer-review/README.md
+   - Học: Peer review process, well-designed API
+   - Thời gian: 1 giờ
+
+BƯỚC 2: Chạy ứng dụng Flask
+   cd /g/2526II_INT3505_1/tuan3/6-peer-review
+   python app.py
+
+   Kết quả mong đợi:
+   ✅ Server running on http://localhost:5005
+
+BƯỚC 3: Xem Well-Designed API Examples
+
+   3.1) Get review checklist:
+       curl http://localhost:5005/api/v1/review-checklist | python -m json.tool
+
+       Kiểm tra:
+       ✅ API score: 97/100
+       ✅ Rating: Excellent
+       ✅ Breakdown: Mỗi criterion scored
+
+   3.2) Get peer review feedback:
+       curl http://localhost:5005/api/v1/peer-review-feedback | python -m json.tool
+
+       Kiểm tra:
+       ✅ Strengths: list 8+ strengths
+       ✅ Areas for improvement: list suggestions
+
+BƯỚC 4: Test CRUD Operations
+
+   4.1) Create project:
+       curl -X POST http://localhost:5005/api/v1/projects \
+         -H "Content-Type: application/json" \
+         -d '{"name":"My Project","description":"Test"}'
+
+       ✅ Status: 201 Created
+       ✅ Response: {status, data, meta}
+
+   4.2) List projects:
+       curl http://localhost:5005/api/v1/projects
+
+       ✅ Status: 200 OK
+       ✅ Có pagination metadata
+
+   4.3) Get single project:
+       curl http://localhost:5005/api/v1/projects/1
+
+       ✅ Status: 200 OK
+
+   4.4) Update project:
+       curl -X PUT http://localhost:5005/api/v1/projects/1 \
+         -H "Content-Type: application/json" \
+         -d '{"name":"Updated","description":"Updated"}'
+
+       ✅ Status: 200 OK
+
+   4.5) Delete project:
+       curl -X DELETE http://localhost:5005/api/v1/projects/1
+
+       ✅ Status: 204 No Content
+
+BƯỚC 5: Test Nested Resources
+
+   5.1) Create task in project:
+       curl -X POST http://localhost:5005/api/v1/projects/1/tasks \
+         -H "Content-Type: application/json" \
+         -d '{"title":"Task 1","status":"pending","assigned_to":1}'
+
+       ✅ Status: 201 Created
+
+   5.2) Get project tasks:
+       curl http://localhost:5005/api/v1/projects/1/tasks
+
+       ✅ Status: 200 OK
+
+BƯỚC 6: Test Multi-word Resources
+
+   6.1) Team members (hyphens):
+       curl "http://localhost:5005/api/v1/team-members?sort-by=name&order=desc"
+
+       ✅ Uses hyphens
+       ✅ Query params use hyphens
+
+BƯỚC 7: Phân tích Best Practices
+
+   ✅ NAMING:
+   - Plural: /projects, /tasks, /team-members
+   - Lowercase: /api/v1/
+   - Hyphens: /team-members
+   - Versioning: /v1/
+
+   ✅ HTTP METHODS:
+   - GET for retrieval
+   - POST for creation (201)
+   - PUT for full update (200)
+   - PATCH for partial update (200)
+   - DELETE for deletion (204)
+
+   ✅ RESPONSE FORMAT:
+   - Consistent: {status, data, meta}
+   - Error format: {status, error: {code, message, details}}
+   - Pagination: total, page, limit, pages
+
+   ✅ STATUS CODES:
+   - 200 OK (GET/PUT/PATCH success)
+   - 201 Created (POST success)
+   - 204 No Content (DELETE success)
+   - 404 Not Found
+   - 422 Unprocessable Entity (validation)
+
+   ✅ FEATURES:
+   - Pagination with metadata
+   - Filtering support
+   - Sorting support
+   - Nested resources
+   - Validation with details
+   - Self-documenting endpoints
+
+BƯỚC 8: Chạy Unit Tests
+   pytest test_app.py -v
+
+   Test well-designed:
+   pytest test_app.py::TestWellDesignedAPI::test_plural_resource_names -v
+   pytest test_app.py::TestWellDesignedAPI::test_create_post_returns_201 -v
+   pytest test_app.py::TestWellDesignedAPI::test_nested_resource_pattern -v
+   pytest test_app.py::TestWellDesignedAPI::test_review_checklist_endpoint -v
+
+   Kết quả mong đợi:
+   ✅ Tất cả tests pass (35+ test cases)
+   ✅ API score: 97/100
+
+BƯỚC 9: Tự thực hành
+   - Thiết kế API của bạn theo well-designed pattern
+   - Implement CRUD operations
+   - Thêm nested resources
+   - Add pagination, filtering, sorting
+   - Test mọi endpoint
+
+================================================================================
+HỌC SONG SONG - CHẠY TẤT CẢ 6 FLOWS CÙNG LÚC
+================================================================================
+
+Nếu muốn chạy tất cả 6 flows cùng một lúc (để so sánh):
+
+TERMINAL 1 - Flow 1:
+cd /g/2526II_INT3505_1/tuan3/1-best-practices
+python app.py  # Port 5000
+
+TERMINAL 2 - Flow 2:
+cd /g/2526II_INT3505_1/tuan3/2-naming-conventions
+python app.py  # Port 5001
+
+TERMINAL 3 - Flow 3:
+cd /g/2526II_INT3505_1/tuan3/3-api-endpoints
+python app.py  # Port 5002
+
+TERMINAL 4 - Flow 4:
+cd /g/2526II_INT3505_1/tuan3/4-design-evaluation
+python app.py  # Port 5003
+
+TERMINAL 5 - Flow 5:
+cd /g/2526II_INT3505_1/tuan3/5-case-study-poorly-designed-api
+python app.py  # Port 5004
+
+TERMINAL 6 - Flow 6:
+cd /g/2526II_INT3505_1/tuan3/6-peer-review
+python app.py  # Port 5005
+
+Sau đó, từ TERMINAL khác, bạn có thể test tất cả:
+curl http://localhost:5000/api/v1/users
+curl http://localhost:5001/api/v1/user-profiles
+curl http://localhost:5002/api/v1/posts
+curl http://localhost:5003/api/v1/evaluations
+curl http://localhost:5004/api/issues-summary
+curl http://localhost:5005/api/v1/projects
+
+================================================================================
+RUN TESTS CHO TOÀN BỘ TUAN3
+================================================================================
+
+1. Run all tests:
+   cd /g/2526II_INT3505_1/tuan3
+   pytest */test_app.py -v
+
+   Kết quả: 150+ tests pass
+
+2. Run specific flow tests:
+   pytest 1-best-practices/test_app.py -v
+   pytest 2-naming-conventions/test_app.py -v
+   pytest 3-api-endpoints/test_app.py -v
+   pytest 4-design-evaluation/test_app.py -v
+   pytest 5-case-study-poorly-designed-api/test_app.py -v
+   pytest 6-peer-review/test_app.py -v
+
+3. Run with coverage:
+   pytest */test_app.py --cov=. --cov-report=html
+
+   Mở: htmlcov/index.html
+
+4. Run specific test:
+   pytest 3-api-endpoints/test_app.py::TestCRUDEndpoints::test_create_post_returns_201 -v
+
+================================================================================
+SUBMISSION CHECKLIST
+================================================================================
+
+Sau khi hoàn thành tất cả 6 flows:
+
+□ Flow 1: Chạy app, test endpoints, chạy tests, tự thực hành
+□ Flow 2: Chạy app, test naming conventions, chạy tests, tự thực hành
+□ Flow 3: Chạy app, test CRUD, test status codes, chạy tests, tự thực hành
+□ Flow 4: Chạy app, xem framework, xem examples, chạy tests, tự thực hành
+□ Flow 5: Chạy app, liệt kê 10 issues, xem refactoring, chạy tests, tự thực hành
+□ Flow 6: Chạy app, xem well-designed API, test endpoints, chạy tests
+
+Tất cả 150+ tests pass ✅
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+1. "ModuleNotFoundError: No module named 'flask'":
+   → pip install -r requirements.txt
+
+2. "Address already in use":
+   → Port 5000 đã được sử dụng
+   → Thay đổi port trong app.py hoặc kill process cũ
+
+3. "Connection refused on localhost:5000":
+   → Flask app không chạy
+   → Kiểm tra terminal có error message nào không
+
+4. "pytest: command not found":
+   → pip install pytest pytest-cov
+
+5. Test fails - "AssertionError":
+   → Đọc AssertionError message
+   → Kiểm tra Flask app có chạy không
+   → Kiểm tra endpoint URL có đúng không
+
+================================================================================
+RESOURCES
+================================================================================
+
+Đọc thêm:
+- README.md từng flow (lý thuyết)
+- PYTHON_FLASK_GUIDE.md (hướng dẫn Flask)
+- Mỗi app.py (comments chi tiết)
+- test_app.py (test cases làm ví dụ)
+
+================================================================================
