@@ -122,6 +122,14 @@ def add_product():
     # Vô hiệu hóa cache bằng cách thay đổi dữ liệu (Response mới sẽ có ETag mới)
     return jsonify(add_links(new_product)), 201
 
+@app.route('/api/products/<int:product_id>', methods=['DELETE'])
+def delete_product(product_id):
+    if not check_stateless_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+    global products
+    products = [p for p in products if p['id'] != product_id]
+    return jsonify({"message": "Product deleted"}), 200
+
 @app.route('/api/products/<int:product_id>', methods=['PUT'])
 def update_product(product_id):
     if not check_stateless_auth():
@@ -134,13 +142,7 @@ def update_product(product_id):
     product['price'] = data.get('price', product['price'])
     return jsonify(add_links(product)), 200
 
-@app.route('/api/products/<int:product_id>', methods=['DELETE'])
-def delete_product(product_id):
-    if not check_stateless_auth():
-        return jsonify({"error": "Unauthorized"}), 401
-    global products
-    products = [p for p in products if p['id'] != product_id]
-    return jsonify({"message": "Product deleted"}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
