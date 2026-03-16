@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, url_for, session, make_response
 import secrets
 import hashlib
 import time
+import jwt
 
 app = Flask(__name__)
 # Key bí mật cho việc sử dụng session (Minh họa tính Stateful)
@@ -13,6 +14,8 @@ products = [
     {"id": 2, "name": "Phone", "price": 800},
     {"id": 3, "name": "Tablet", "price": 500}
 ]
+
+secret_key = "bao12345"
 
 # Biến để theo dõi thời điểm cập nhật cuối cùng (Minh họa Cacheable)
 last_modified_time = time.time()

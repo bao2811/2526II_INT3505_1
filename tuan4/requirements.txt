@@ -1,0 +1,3 @@
+Flask>=2.3
+flask-swagger-ui>=3.52
+PyYAML>=6.0

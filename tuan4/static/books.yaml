@@ -1,0 +1,233 @@
+openapi: 3.1.0
+info:
+  title: Book Catalog API
+  version: 1.0.0
+  description: |
+    Tài liệu OpenAPI mô tả API quản lý thư viện nhẹ, bao gồm thao tác đọc, viết,
+    cập nhật và xóa sách cùng các bộ lọc đơn giản.
+servers:
+  - url: http://localhost:5000
+    description: Development server
+tags:
+  - name: Books
+    description: Endpoints dành cho tài nguyên sách
+paths:
+  /books:
+    get:
+      tags:
+        - Books
+      summary: Lấy danh sách sách có thể lọc theo thể loại và tác giả
+      parameters:
+        - name: genre
+          in: query
+          schema:
+            type: string
+          description: Lọc theo genre (không phân biệt hoa thường)
+        - name: author
+          in: query
+          schema:
+            type: string
+          description: Lọc theo tên tác giả (toàn phần)
+      responses:
+        "200":
+          description: Danh sách sách thỏa mãn bộ lọc
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Book"
+              example:
+                - id: 1
+                  title: Clean Architecture
+                  author: Robert C. Martin
+                  publishedDate: "2017-09-20"
+                  genre: Professional
+                  summary: Principles of software architecture
+                  availableCopies: 3
+                - id: 2
+                  title: The Hobbit
+                  author: J.R.R. Tolkien
+                  publishedDate: "1937-09-21"
+                  genre: Fantasy
+                  summary: Quản lý hành trình của Bilbo Baggins
+                  availableCopies: 5
+        "400":
+          $ref: "#/components/responses/BadRequest"
+    post:
+      tags:
+        - Books
+      summary: Tạo sách mới
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookInput"
+      responses:
+        "201":
+          description: Sách được tạo thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+              example:
+                id: 42
+                title: Pragmatic Programmer
+                author: Andrew Hunt
+                publishedDate: "1999-10-20"
+                genre: Professional
+                summary: Hướng dẫn phát triển phần mềm linh hoạt
+                availableCopies: 2
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /books/{bookId}:
+    parameters:
+      - $ref: "#/components/parameters/bookId"
+    get:
+      tags:
+        - Books
+      summary: Lấy chi tiết một sách
+      responses:
+        "200":
+          description: Chi tiết sách
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+              example:
+                id: 1
+                title: Clean Architecture
+                author: Robert C. Martin
+                publishedDate: "2017-09-20"
+                genre: Professional
+                summary: Principles of software architecture
+                availableCopies: 3
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags:
+        - Books
+      summary: Cập nhật toàn bộ thông tin sách
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookInput"
+      responses:
+        "200":
+          description: Sách sau khi cập nhật
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - Books
+      summary: Xóa một sách
+      responses:
+        "204":
+          description: Sách bị xóa thành công
+        "404":
+          $ref: "#/components/responses/NotFound"
+components:
+  schemas:
+    Book:
+      type: object
+      required:
+        - id
+        - title
+        - author
+        - publishedDate
+        - genre
+        - summary
+        - availableCopies
+      properties:
+        id:
+          type: integer
+          description: ID duy nhất của sách
+          example: 1
+        title:
+          type: string
+          description: Tên sách
+          example: Clean Architecture
+        author:
+          type: string
+          description: Tác giả chính
+          example: Robert C. Martin
+        publishedDate:
+          type: string
+          format: date
+          description: Ngày xuất bản (YYYY-MM-DD)
+          example: "2017-09-20"
+        genre:
+          type: string
+          description: Thể loại sách
+          example: Professional
+        summary:
+          type: string
+          description: Mô tả ngắn
+          example: Principles of software architecture
+        availableCopies:
+          type: integer
+          description: Số bản có thể cho mượn
+          example: 3
+    BookInput:
+      type: object
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        publishedDate:
+          type: string
+          format: date
+        genre:
+          type: string
+        summary:
+          type: string
+        availableCopies:
+          type: integer
+      required:
+        - title
+        - author
+        - publishedDate
+        - genre
+        - summary
+        - availableCopies
+  parameters:
+    bookId:
+      name: bookId
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: ID của sách cần thao tác
+  responses:
+    NotFound:
+      description: Tài nguyên không tồn tại
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+          example:
+            error: Book not found
+    BadRequest:
+      description: Dữ liệu gửi lên không hợp lệ
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+          example:
+            error: Missing required field
