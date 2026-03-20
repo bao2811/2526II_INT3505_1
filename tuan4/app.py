@@ -1,16 +1,39 @@
 """Flask practice server exposing the Book Catalog API."""
 from flask import Flask, jsonify, request, url_for
 from flask_swagger_ui import get_swaggerui_blueprint
+from flask_cors import CORS
+
+import os
+
+ENV = os.getenv("ENV", "development")
+BASE_URL = os.getenv("BASE_URL")
+PRODUCTION_URL = os.getenv("PRODUCTION_URL")
+
+openapi_spec = {
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Book Catalog API",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {"url": BASE_URL},
+        {"url": PRODUCTION_URL, "description": "Production server"},
+    ]
+}
 
 app = Flask(__name__, static_folder="static")
+CORS(app)
 
 SWAGGER_URL = "/docs"
 API_URL = "/static/books.yaml"
 
+
 swaggerui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
-    config={"app_name": "Book Catalog API"}
+    config={
+        "app_name": "Book Catalog API",
+    }
 )
 
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)

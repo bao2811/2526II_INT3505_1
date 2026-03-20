@@ -6,8 +6,10 @@ info:
     Tài liệu OpenAPI mô tả API quản lý thư viện nhẹ, bao gồm thao tác đọc, viết,
     cập nhật và xóa sách cùng các bộ lọc đơn giản.
 servers:
-  - url: http://localhost:5000
-    description: Development server
+  - url: "http://localhost:5000"
+    description: Base URL Local
+  - url: "https://two526ii-int3505-1-w6u9.onrender.com"
+    description: Production server
 tags:
   - name: Books
     description: Endpoints dành cho tài nguyên sách
