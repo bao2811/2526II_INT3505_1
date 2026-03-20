@@ -1,0 +1,18 @@
+{
+  "operations": {
+    "listBooks": {
+      "method": "GET",
+      "path": "/books",
+      "return": { "type": "array", "items": { "$ref": "Book" } }
+    }
+  },
+  "definitions": {
+    "Book": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "title": { "type": "string" }
+      }
+    }
+  }
+}

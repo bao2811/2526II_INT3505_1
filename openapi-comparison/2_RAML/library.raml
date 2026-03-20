@@ -1,0 +1,97 @@
+#%RAML 1.0
+title: Library Management API
+version: v1
+baseUri: http://localhost:8080/api
+mediaType: application/json
+
+# 1. Định nghĩa kiểu dữ liệu (Schema)
+types:
+  Book:
+    type: object
+    properties:
+      id: 
+        type: integer
+        required: false
+      title: 
+        type: string
+        required: true
+      author: 
+        type: string
+        required: true
+      isbn: 
+        type: string
+        required: false
+    example:
+      id: 1
+      title: "Số Đỏ"
+      author: "Vũ Trọng Phụng"
+      isbn: "978-123456"
+
+# 2. Định nghĩa các Tài nguyên (Routes)
+/books:
+  get:
+    description: Lấy danh sách toàn bộ sách trong thư viện.
+    responses:
+      200:
+        body:
+          application/json:
+            type: Book[]
+            example:
+              - id: 1
+                title: "Số Đỏ"
+                author: "Vũ Trọng Phụng"
+              - id: 2
+                title: "Lão Hạc"
+                author: "Nam Cao"
+
+  post:
+    description: Thêm một cuốn sách mới vào hệ thống.
+    body:
+      application/json:
+        type: Book
+    responses:
+      201:
+        body:
+          application/json:
+            type: Book
+            example:
+              id: 3
+              title: "Tắt Đèn"
+              author: "Ngô Tất Tố"
+
+  /{id}:
+    uriParameters:
+      id: integer
+    
+    get:
+      description: Lấy thông tin chi tiết một cuốn sách theo ID.
+      responses:
+        200:
+          body:
+            application/json:
+              type: Book
+        404:
+          body:
+            application/json:
+              example: {"message": "Không tìm thấy sách"}
+
+    put:
+      description: Cập nhật thông tin cuốn sách hiện có.
+      body:
+        application/json:
+          type: Book
+      responses:
+        200:
+          body:
+            application/json:
+              type: Book
+
+    delete:
+      description: Xóa cuốn sách khỏi hệ thống.
+      responses:
+        204:
+          description: Xóa thành công, không có nội dung trả về.
+        404:
+          body:
+            application/json:
+              example: {"message": "Sách không tồn tại để xóa"}
