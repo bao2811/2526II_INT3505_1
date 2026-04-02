@@ -1,0 +1,38 @@
+openapi: 3.0.3
+info:
+  title: Week 6 Flask Auth API
+  version: 1.0.0
+paths:
+  /auth/login:
+    post:
+      summary: Login to get JWT access token and refresh token
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+  /auth/me:
+    get:
+      summary: Get current user from JWT
+  /oauth/authorize:
+    post:
+      summary: Mock OAuth 2.0 authorize endpoint
+  /oauth/token:
+    post:
+      summary: Exchange code for JWT
+  /oauth/me:
+    get:
+      summary: Get current user from OAuth-issued JWT
+  /books:
+    get:
+      summary: List books
+    post:
+      summary: Create book
+  /books/{book_id}:
+    get:
+      summary: Get book by id
+    put:
+      summary: Update book by admin
+    delete:
+      summary: Delete book by admin
+  /security/audit:
+    get:
+      summary: Basic security audit report
