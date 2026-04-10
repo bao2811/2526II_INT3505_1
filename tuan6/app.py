@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import json
 import os
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from typing import Any, Callable
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 from uuid import uuid4
 
 import jwt
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, redirect, request
 from flask_cors import CORS
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -31,6 +34,13 @@ REFRESH_SECRET = os.getenv("JWT_REFRESH_SECRET_KEY", "dev-refresh-secret")
 
 OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID", "demo-client")
 OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET", "demo-secret")
+GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
+GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
+GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:5000/oauth/github/callback")
+GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
+GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token"
+GITHUB_USER_URL = "https://api.github.com/user"
+GITHUB_EMAIL_URL = "https://api.github.com/user/emails"
 
 
 def _utcnow() -> datetime:
@@ -113,6 +123,7 @@ _users: list[dict[str, Any]] = [
 
 _refresh_tokens: dict[str, dict[str, Any]] = {}
 _oauth_codes: dict[str, dict[str, Any]] = {}
+_github_oauth_states: dict[str, datetime] = {}
 
 _books: list[dict[str, Any]] = [
     {
@@ -168,6 +179,59 @@ def _require_json_payload() -> dict[str, Any] | None:
     if not isinstance(payload, dict):
         return None
     return payload
+
+
+def _http_json(method: str, url: str, *, data: dict[str, Any] | None = None, headers: dict[str, str] | None = None) -> Any:
+    request_headers = {"Accept": "application/json"}
+    if headers:
+        request_headers.update(headers)
+    body = None
+    if data is not None:
+        body = urlencode(data).encode("utf-8")
+        request_headers["Content-Type"] = "application/x-www-form-urlencoded"
+    req = Request(url, method=method, data=body, headers=request_headers)
+    with urlopen(req, timeout=10) as response:
+        return json.load(response)
+
+
+def _github_primary_email(access_token: str) -> str | None:
+    headers = {"Authorization": f"token {access_token}"}
+    emails = _http_json("GET", GITHUB_EMAIL_URL, headers=headers)
+    if isinstance(emails, list):
+        for entry in emails:
+            if entry.get("primary") and entry.get("verified"):
+                return entry.get("email")
+        for entry in emails:
+            if entry.get("verified"):
+                return entry.get("email")
+    return None
+
+
+def _github_state_is_valid(state: str) -> bool:
+    issued_at = _github_oauth_states.pop(state, None)
+    if issued_at is None:
+        return False
+    return _utcnow() - issued_at <= timedelta(minutes=10)
+
+
+def _get_or_create_github_user(profile: dict[str, Any], email: str) -> dict[str, Any]:
+    existing = _find_user_by_email(email)
+    if existing is not None:
+        return existing
+
+    github_id = profile.get("id")
+    login = profile.get("login") or "github-user"
+    name = profile.get("name") or login
+    user = {
+        "id": f"usr_gh_{github_id or uuid4()}",
+        "name": name,
+        "email": email,
+        "password_hash": _hash_password(str(uuid4())),
+        "role": "user",
+        "scopes": ["read:books"],
+    }
+    _users.append(user)
+    return user
 
 
 def _extract_bearer_token() -> str | None:
@@ -304,6 +368,8 @@ def home():
                 "me": "/auth/me",
                 "oauth_authorize": "/oauth/authorize",
                 "oauth_token": "/oauth/token",
+                "github_authorize": "/oauth/github/authorize",
+                "github_callback": "/oauth/github/callback",
                 "books": "/books",
             },
             "testAccounts": [
@@ -477,6 +543,103 @@ def oauth_token():
             "token_type": "Bearer",
             "expires_in": ACCESS_TOKEN_EXPIRES_MINUTES * 60,
             "scope": auth_code["scope"],
+            "user": _make_public_user(user),
+        }
+    )
+
+
+@app.get("/oauth/github/authorize")
+def github_authorize():
+    if not GITHUB_CLIENT_ID or not GITHUB_CLIENT_SECRET:
+        return (
+            jsonify(
+                {
+                    "error": "GITHUB_OAUTH_NOT_CONFIGURED",
+                    "message": "Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in the environment.",
+                }
+            ),
+            500,
+        )
+
+    state = str(uuid4())
+    _github_oauth_states[state] = _utcnow()
+    scope = request.args.get("scope", "read:user user:email")
+    params = {
+        "client_id": GITHUB_CLIENT_ID,
+        "redirect_uri": GITHUB_REDIRECT_URI,
+        "scope": scope,
+        "state": state,
+    }
+    return redirect(f"{GITHUB_AUTHORIZE_URL}?{urlencode(params)}")
+
+
+@app.get("/oauth/github/callback")
+def github_callback():
+    code = request.args.get("code")
+    state = request.args.get("state")
+    if not isinstance(code, str) or not code.strip():
+        return jsonify({"error": "INVALID_CODE", "message": "Missing authorization code."}), 400
+    if not isinstance(state, str) or not _github_state_is_valid(state):
+        return jsonify({"error": "INVALID_STATE", "message": "Invalid or expired state."}), 400
+
+    token_response = _http_json(
+        "POST",
+        GITHUB_TOKEN_URL,
+        data={
+            "client_id": GITHUB_CLIENT_ID,
+            "client_secret": GITHUB_CLIENT_SECRET,
+            "code": code,
+            "redirect_uri": GITHUB_REDIRECT_URI,
+        },
+    )
+    access_token = token_response.get("access_token") if isinstance(token_response, dict) else None
+    if not access_token:
+        return jsonify({"error": "TOKEN_EXCHANGE_FAILED", "details": token_response}), 400
+
+    profile = _http_json("GET", GITHUB_USER_URL, headers={"Authorization": f"token {access_token}"})
+    if not isinstance(profile, dict):
+        return jsonify({"error": "PROFILE_FETCH_FAILED", "details": profile}), 400
+
+    email = profile.get("email") or _github_primary_email(access_token)
+    if not email:
+        return (
+            jsonify(
+                {
+                    "error": "EMAIL_REQUIRED",
+                    "message": "GitHub account email is required. Ensure user:email scope is granted.",
+                }
+            ),
+            400,
+        )
+
+    user = _get_or_create_github_user(profile, email)
+    access_token = _create_token(
+        user=user,
+        secret=ACCESS_SECRET,
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRES_MINUTES),
+        token_type="access",
+    )
+    refresh_token = _create_token(
+        user=user,
+        secret=REFRESH_SECRET,
+        expires_delta=timedelta(days=REFRESH_TOKEN_EXPIRES_DAYS),
+        token_type="refresh",
+    )
+
+    refresh_payload = jwt.decode(refresh_token, REFRESH_SECRET, algorithms=["HS256"])
+    _refresh_tokens[refresh_payload["jti"]] = {
+        "userId": user["id"],
+        "tokenId": refresh_payload["jti"],
+        "expiresAt": refresh_payload["exp"],
+        "revoked": False,
+    }
+
+    return jsonify(
+        {
+            "tokenType": "Bearer",
+            "accessToken": access_token,
+            "expiresIn": ACCESS_TOKEN_EXPIRES_MINUTES * 60,
+            "refreshToken": refresh_token,
             "user": _make_public_user(user),
         }
     )

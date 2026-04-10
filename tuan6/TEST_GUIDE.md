@@ -110,6 +110,39 @@ curl http://localhost:5000/oauth/me ^
   -H "Authorization: Bearer <access_token>"
 ```
 
+## 7b. Test GitHub OAuth (tuỳ chọn)
+
+Yêu cầu: đã set `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` trong `.env`.
+
+### Bước 1: Mở authorize URL (trình duyệt)
+
+```
+http://localhost:5000/oauth/github/authorize
+```
+
+Kỳ vọng: redirect sang GitHub để xác nhận.
+
+### Bước 2: GitHub redirect về callback
+
+Sau khi đồng ý, GitHub redirect về:
+
+```
+http://localhost:5000/oauth/github/callback?code=...&state=...
+```
+
+Kỳ vọng: server trả JSON có `accessToken` và `refreshToken`.
+
+### Nếu muốn kiểm tra nhanh bằng curl
+
+```bash
+curl -I http://localhost:5000/oauth/github/authorize
+```
+
+Kỳ vọng:
+
+- `302` nếu cấu hình đúng (redirect sang GitHub).
+- `500` nếu thiếu biến môi trường.
+
 ## 8. Test lỗi bảo mật cơ bản
 
 ### Không gửi token
