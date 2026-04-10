@@ -2,19 +2,14 @@ FORMAT: 1A
 HOST: http://localhost:8080/api
 
 # Library API
-Dịch vụ quản lý sách cho thư viện UET.
+Library management service.
 
-## Group Books
-Các tài nguyên liên quan đến sách.
-
-## Books [/books]
-Các hoạt động quản lý danh sách sách.
-
-### Danh sách sách [GET]
+# Books [/books]
+### List Books [GET]
 + Response 200 (application/json)
     + Attributes (array[Book])
 
-### Thêm sách mới [POST]
+### Create Book [POST]
 + Request (application/json)
     + Attributes (Book)
 
@@ -24,5 +19,5 @@ Các hoạt động quản lý danh sách sách.
 # Data Structures
 ## Book (object)
 + id: 1 (number, required)
-+ title: "Lập trình Python" (string, required)
-+ author: "Nguyễn Văn A" (string)
++ title: "Python Programming" (string, required)
++ author: "Nguyen Van A" (string)

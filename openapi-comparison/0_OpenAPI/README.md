@@ -13,6 +13,8 @@ Thư mục này chứa đặc tả API theo chuẩn OpenAPI 3.0 (YAML).
 
 1. **Kiểm tra API (Test):**
    ```bash\
+   python -m venv .venv
+   .\.venv\Scripts\activate
    pip install schemathesis
    schemathesis run library.yaml --base-url http://localhost:8080/api
    ```
@@ -32,4 +34,28 @@ openapi-generator-cli generate -i library.yaml -g python-flask -o ./generated_fl
 ```bash
 mã nguồn javascript
 openapi-generator-cli generate -i library.yaml -g javascript -o ./client-sdk
+```
+
+### 🚀 Chạy server Flask đã generate
+
+Sau khi sinh code vào thư mục `generated_flask_app/`, chạy server như sau:
+
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate
+cd generated_flask_app
+pip install -r requirements.txt
+python -m openapi_server
+```
+
+Server sẽ chạy tại:
+
+```bash
+http://localhost:8080/ui/
+```
+
+OpenAPI JSON của server:
+
+```bash
+http://localhost:8080/openapi.json
 ```

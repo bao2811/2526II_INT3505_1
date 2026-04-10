@@ -1,0 +1,86 @@
+openapi: 3.0.0
+info:
+  title: Library API
+  version: ""
+  description: Library management service.
+paths:
+  /books:
+    get:
+      responses:
+        "200":
+          description: OK
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+              examples:
+                response:
+                  value:
+                    - id: 1
+                      title: '"Python Programming"'
+                      author: '"Nguyen Van A"'
+      summary: List Books
+      operationId: List Books
+      description: ""
+      tags: []
+    post:
+      responses:
+        "201":
+          description: Created
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+              examples:
+                response:
+                  value:
+                    id: 1
+                    title: '"Python Programming"'
+                    author: '"Nguyen Van A"'
+      summary: Create Book
+      operationId: Create Book
+      description: ""
+      tags: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: number
+                title:
+                  type: string
+                author:
+                  type: string
+              required:
+                - id
+                - title
+              example:
+                id: 1
+                title: '"Python Programming"'
+                author: '"Nguyen Van A"'
+tags: []
+servers:
+  - url: http://localhost:8080/api
+components:
+  schemas:
+    Books: {}
+    Book:
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          type: number
+          example: 1
+        title:
+          type: string
+          example: '"Python Programming"'
+        author:
+          type: string
+          example: '"Nguyen Van A"'

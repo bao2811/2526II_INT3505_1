@@ -1,4 +1,4 @@
-### 📂 `4_TypeAPI/README.md`
+# TypeAPI (Type-Safe API Spec)
 
 ````markdown
 # TypeAPI (Type-Safe API Spec)
@@ -11,13 +11,13 @@
 
 ### 🚀 Hướng dẫn chạy Demo
 
-# 4. TypeAPI
+## 4. TypeAPI
 
 JSON tối giản, dùng để sinh các class dữ liệu (Models) cho Flask một cách tự động.
 
 **1. Sinh code Model (Python Pydantic):**
 
-# Cách 1
+## Cách 1
 
 Dùng để tạo ra các class dữ liệu tương ứng trong Flask:
 
@@ -29,7 +29,7 @@ typeapi generate library.json -l python -o ./models
 ```
 ````
 
-# Cách 2
+## Cách 2
 
 `python -m datamodel_code_generator --input library.json --input-file-type json --output models.py`
 
@@ -48,3 +48,20 @@ python -m datamodel_code_generator -i library.json --input-file-type json -o mod
 `pip install schemathesis`
 `schemathesis run library.json --base-url http://localhost:8080/api`
 
+## Cách chạy server
+
+```bash
+cd openapi-comparison/4_TypeAPI
+pip install -r requirements.txt
+python server.py
+```
+
+Server chạy tại `http://localhost:8080/api`.
+
+### Test nhanh
+
+```bash
+curl http://localhost:8080/api/books
+```
+
+Nếu sửa code, chạy lại `python server.py` rồi test lại bằng `curl`.

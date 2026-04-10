@@ -1,0 +1,395 @@
+openapi: 3.0.3
+info:
+  title: Pagination Demo API
+  version: 1.0.0
+  description: Demo API for pagination strategies in Flask with MySQL.
+servers:
+  - url: http://localhost:3000
+paths:
+  /:
+    get:
+      summary: Home
+      responses:
+        "200":
+          description: Home response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  version:
+                    type: string
+                  endpoints:
+                    type: object
+                    additionalProperties:
+                      type: string
+                  docs:
+                    type: string
+  /api/pagination/docs:
+    get:
+      summary: API documentation
+      responses:
+        "200":
+          description: Documentation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  endpoints:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        url:
+                          type: string
+                        method:
+                          type: string
+                        params:
+                          type: string
+                        example:
+                          type: string
+  /api/pagination/offset:
+    get:
+      summary: Offset pagination
+      parameters:
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        "200":
+          description: Offset pagination response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OffsetPaginationResponse"
+  /api/pagination/cursor:
+    get:
+      summary: Cursor pagination
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - in: query
+          name: last_id
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Cursor pagination response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CursorPaginationResponse"
+  /api/pagination/page-based:
+    get:
+      summary: Page-based pagination
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        "200":
+          description: Page-based pagination response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageBasedPaginationResponse"
+  /api/pagination/stats:
+    get:
+      summary: Database stats
+      responses:
+        "200":
+          description: Stats response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsResponse"
+  /api/pagination/search:
+    get:
+      summary: Search users
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        "200":
+          description: Search response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+  /api/pagination/filter/city/{city}:
+    get:
+      summary: Filter users by city
+      parameters:
+        - in: path
+          name: city
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        "200":
+          description: Filter response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilterResponse"
+  /api/pagination/random:
+    get:
+      summary: Get random users
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        "200":
+          description: Random users response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RandomResponse"
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        full_name:
+          type: string
+        age:
+          type: integer
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    Performance:
+      type: object
+      properties:
+        duration_ms:
+          type: integer
+        method:
+          type: string
+    OffsetPagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+        total:
+          type: integer
+        offset:
+          type: integer
+        has_next:
+          type: boolean
+        has_previous:
+          type: boolean
+    CursorPagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+        last_id:
+          type: integer
+        has_next:
+          type: boolean
+        next_last_id:
+          type: integer
+          nullable: true
+        records_returned:
+          type: integer
+    PageBasedPagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+        has_next:
+          type: boolean
+        has_previous:
+          type: boolean
+    OffsetPaginationResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        pagination:
+          $ref: "#/components/schemas/OffsetPagination"
+        performance:
+          $ref: "#/components/schemas/Performance"
+    CursorPaginationResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        pagination:
+          $ref: "#/components/schemas/CursorPagination"
+        performance:
+          $ref: "#/components/schemas/Performance"
+    PageBasedPaginationResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        pagination:
+          $ref: "#/components/schemas/PageBasedPagination"
+        performance:
+          $ref: "#/components/schemas/Performance"
+    StatsResponse:
+      type: object
+      properties:
+        database_stats:
+          type: object
+          properties:
+            total_records:
+              type: integer
+            min_id:
+              type: integer
+            max_id:
+              type: integer
+            oldest_record:
+              type: string
+              format: date-time
+              nullable: true
+            newest_record:
+              type: string
+              format: date-time
+              nullable: true
+            size_mb:
+              type: number
+              format: float
+    SearchResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              username:
+                type: string
+              email:
+                type: string
+              full_name:
+                type: string
+        search_query:
+          type: string
+        results_count:
+          type: integer
+    FilterResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            total_pages:
+              type: integer
+            city:
+              type: string
+    RandomResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        method:
+          type: string

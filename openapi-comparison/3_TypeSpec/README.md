@@ -1,36 +1,69 @@
-### 📂 `3_TypeSpec/README.md`
-
-````markdown
 # TypeSpec (Next-Gen API Design)
 
-Viết API bằng ngôn ngữ hướng đối tượng tương tự TypeScript.
+## Mục tiêu
 
-### 🛠 Công cụ hỗ trợ
+- Viết API spec bằng TypeSpec.
+- Sinh OpenAPI từ `library.tsp`.
+- Chạy Flask server mẫu để test API.
 
-1. **TypeSpec Compiler**: `@typespec/compiler`.
-
-### 🚀 Hướng dẫn chạy Demo
-
-### 🚀 Cách chạy (Quan trọng cho Flask)
-
-1. **Cài đặt:** `npm install` để cài compiler.
-
-`npm install -g @typespec/compiler`
-
-# 2. Cài đặt các thư viện cần thiết trong folder 3_TypeSpec
-
-`npm install @typespec/http @typespec/rest @typespec/openapi3`
-
-# 3. **Biên dịch:** Chạy lệnh sau để tạo file OpenAPI cho Flask:
+## Biên dịch TypeSpec
 
 ```bash
+cd openapi-comparison/3_TypeSpec
+npm install
 npx tsp compile library.tsp --emit @typespec/openapi3
 ```
-````
 
-# 4 Sau khi có file output từ bước trên, bạn có thể sinh Client SDK cho Frontend (React/Vue) để gọi tới Flask:
+OpenAPI sẽ được tạo ở `tsp-output/@typespec/openapi3/openapi.yaml`.
+
+## Chạy server Flask
 
 ```bash
-# Dùng file vừa sinh ra để tạo bộ thư viện Javascript
-openapi-generator-cli generate -i ./tsp-output/@typespec/openapi3/openapi.json -g javasc
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python server.py
 ```
+
+Server chạy tại `http://localhost:8080/api`.
+
+## Test nhanh
+
+```bash
+curl http://localhost:8080/api/books
+```
+
+## Lệnh test lại sau khi sửa code
+
+Chỉ cần lưu file rồi chạy lại:
+
+```bash
+python server.py
+```
+
+## Ghi chú
+
+- `library.tsp` chỉ mô tả sách tối giản với `GET`, `POST`, `GET by id`, `DELETE`.
+- `server.py` bám theo đúng các endpoint đó.
+
+## Hướng dẫn chạy server
+
+```bash
+cd openapi-comparison/3_TypeSpec
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python server.py
+```
+
+Server chạy tại `http://localhost:8080/api`.
+
+Test nhanh:
+
+```bash
+curl http://localhost:8080/api/books
+```
+
+npx @openapitools/openapi-generator-cli generate `  -i .\tsp-output\@typespec\openapi3\openapi.yaml`
+-g python-flask `
+-o .\server-generated

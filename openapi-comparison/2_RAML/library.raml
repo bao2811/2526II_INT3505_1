@@ -1,31 +1,40 @@
-#%RAML 1.0
+#%RAML 0.8
 title: Library Management API
 version: v1
 baseUri: http://localhost:8080/api
 mediaType: application/json
 
 # 1. Định nghĩa kiểu dữ liệu (Schema)
-types:
-  Book:
-    type: object
-    properties:
-      id: 
-        type: integer
-        required: false
-      title: 
-        type: string
-        required: true
-      author: 
-        type: string
-        required: true
-      isbn: 
-        type: string
-        required: false
-    example:
-      id: 1
-      title: "Số Đỏ"
-      author: "Vũ Trọng Phụng"
-      isbn: "978-123456"
+schemas:
+  - Book: |
+      {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "Book",
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer"},
+          "title": {"type": "string"},
+          "author": {"type": "string"},
+          "isbn": {"type": "string"}
+        },
+        "required": ["title", "author"]
+      }
+  - BookList: |
+      {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "BookList",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {"type": "integer"},
+            "title": {"type": "string"},
+            "author": {"type": "string"},
+            "isbn": {"type": "string"}
+          },
+          "required": ["title", "author"]
+        }
+      }
 
 # 2. Định nghĩa các Tài nguyên (Routes)
 /books:
@@ -35,33 +44,54 @@ types:
       200:
         body:
           application/json:
-            type: Book[]
-            example:
-              - id: 1
-                title: "Số Đỏ"
-                author: "Vũ Trọng Phụng"
-              - id: 2
-                title: "Lão Hạc"
-                author: "Nam Cao"
+            schema: BookList
+            example: |
+              [
+                {"id": 1, "title": "So Do", "author": "Vu Trong Phung"},
+                {"id": 2, "title": "Lao Hac", "author": "Nam Cao"}
+              ]
 
   post:
     description: Thêm một cuốn sách mới vào hệ thống.
     body:
       application/json:
-        type: Book
+        schema: |
+          {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "title": "Book",
+            "type": "object",
+            "properties": {
+              "id": {"type": "integer"},
+              "title": {"type": "string"},
+              "author": {"type": "string"},
+              "isbn": {"type": "string"}
+            },
+            "required": ["title", "author"]
+          }
     responses:
       201:
         body:
           application/json:
-            type: Book
-            example:
-              id: 3
-              title: "Tắt Đèn"
-              author: "Ngô Tất Tố"
+            schema: |
+              {
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "title": "Book",
+                "type": "object",
+                "properties": {
+                  "id": {"type": "integer"},
+                  "title": {"type": "string"},
+                  "author": {"type": "string"},
+                  "isbn": {"type": "string"}
+                },
+                "required": ["title", "author"]
+              }
+            example: |
+              {"id": 3, "title": "Tat Den", "author": "Ngo Tat To"}
 
   /{id}:
     uriParameters:
-      id: integer
+      id:
+        type: integer
     
     get:
       description: Lấy thông tin chi tiết một cuốn sách theo ID.
@@ -69,22 +99,59 @@ types:
         200:
           body:
             application/json:
-              type: Book
+              schema: |
+                {
+                  "$schema": "http://json-schema.org/draft-04/schema#",
+                  "title": "Book",
+                  "type": "object",
+                  "properties": {
+                    "id": {"type": "integer"},
+                    "title": {"type": "string"},
+                    "author": {"type": "string"},
+                    "isbn": {"type": "string"}
+                  },
+                  "required": ["title", "author"]
+                }
         404:
           body:
             application/json:
-              example: {"message": "Không tìm thấy sách"}
+              example: |
+                {"message": "Khong tim thay sach"}
 
     put:
       description: Cập nhật thông tin cuốn sách hiện có.
       body:
         application/json:
-          type: Book
+          schema: |
+            {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+              "title": "Book",
+              "type": "object",
+              "properties": {
+                "id": {"type": "integer"},
+                "title": {"type": "string"},
+                "author": {"type": "string"},
+                "isbn": {"type": "string"}
+              },
+              "required": ["title", "author"]
+            }
       responses:
         200:
           body:
             application/json:
-              type: Book
+              schema: |
+                {
+                  "$schema": "http://json-schema.org/draft-04/schema#",
+                  "title": "Book",
+                  "type": "object",
+                  "properties": {
+                    "id": {"type": "integer"},
+                    "title": {"type": "string"},
+                    "author": {"type": "string"},
+                    "isbn": {"type": "string"}
+                  },
+                  "required": ["title", "author"]
+                }
 
     delete:
       description: Xóa cuốn sách khỏi hệ thống.
@@ -94,4 +161,5 @@ types:
         404:
           body:
             application/json:
-              example: {"message": "Sách không tồn tại để xóa"}
+              example: |
+                {"message": "Sach khong ton tai de xoa"}

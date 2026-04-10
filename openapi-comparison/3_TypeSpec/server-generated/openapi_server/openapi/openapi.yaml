@@ -1,0 +1,101 @@
+openapi: 3.0.0
+info:
+  title: Library Management Service
+  version: 0.0.0
+servers:
+- description: Cổng API Flask
+  url: http://localhost:8080/api
+paths:
+  /books:
+    get:
+      operationId: books_list
+      parameters: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/Book"
+                type: array
+          description: The request has succeeded.
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    post:
+      operationId: books_create
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Book"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+          description: The request has succeeded and a new resource has been created
+            as a result.
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /books/{id}:
+    delete:
+      operationId: books_delete_book
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: "There is no content to send for this request, but the headers\
+            \ may be useful. "
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    get:
+      operationId: books_get_book
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+          description: The request has succeeded.
+        "404":
+          description: The server cannot find the requested resource.
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+components:
+  schemas:
+    Book:
+      example:
+        author: author
+        id: 0
+        title: title
+      properties:
+        id:
+          format: int32
+          title: id
+          type: integer
+        title:
+          title: title
+          type: string
+        author:
+          title: author
+          type: string
+      required:
+      - author
+      - title
+      title: Book
+      type: object
