@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Logitech MX Master 3S",
+    "description": "Wireless productivity mouse",
+    "price": 99.99,
+    "inStock": true
+  },
+  {
+    "name": "Keychron K8 Pro",
+    "description": "Mechanical keyboard hot-swappable",
+    "price": 89.5,
+    "inStock": true
+  },
+  {
+    "name": "Dell Ultrasharp U2723QE",
+    "description": "27-inch 4K monitor",
+    "price": 549.0,
+    "inStock": false
+  },
+  {
+    "name": "Samsung T7 SSD 1TB",
+    "description": "Portable external SSD",
+    "price": 79.0,
+    "inStock": true
+  },
+  {
+    "name": "Sony WH-1000XM5",
+    "description": "Noise-canceling headphones",
+    "price": 329.0,
+    "inStock": true
+  },
+  {
+    "name": "Raspberry Pi 5",
+    "description": "Single-board computer",
+    "price": 60.0,
+    "inStock": false
+  }
+]

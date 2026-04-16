@@ -1,0 +1,168 @@
+openapi: 3.0.3
+info:
+  title: Product Service API
+  version: 1.0.0
+  description: Flask backend generated from OpenAPI contract for Product CRUD.
+servers:
+  - url: http://localhost:5000
+paths:
+  /health:
+    get:
+      operationId: app.health_check
+      summary: Health check
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /products:
+    get:
+      operationId: controllers.product_controller.get_products
+      summary: Get all products
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: controllers.product_controller.create_product
+      summary: Create a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCreate"
+            x-body-name: product
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          description: Invalid input
+
+  /products/{product_id}:
+    get:
+      operationId: controllers.product_controller.get_product_by_id
+      summary: Get a product by id
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Product not found
+    put:
+      operationId: controllers.product_controller.update_product
+      summary: Update a product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+            x-body-name: product
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          description: Invalid input
+        "404":
+          description: Product not found
+    delete:
+      operationId: controllers.product_controller.delete_product
+      summary: Delete a product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Product deleted
+        "404":
+          description: Product not found
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        inStock:
+          type: boolean
+      required:
+        - id
+        - name
+        - price
+        - inStock
+
+    ProductCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        inStock:
+          type: boolean
+      required:
+        - name
+        - price
+
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        inStock:
+          type: boolean
