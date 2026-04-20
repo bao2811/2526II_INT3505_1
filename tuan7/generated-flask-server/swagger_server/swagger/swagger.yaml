@@ -1,0 +1,187 @@
+openapi: 3.0.3
+info:
+  title: Product Service API
+  description: Flask backend generated from OpenAPI contract for Product CRUD.
+  version: 1.0.0
+servers:
+- url: http://localhost:5000
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: app_health_check
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /products:
+    get:
+      summary: Get all products
+      operationId: controllers_product_controller_get_products
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+                x-content-type: application/json
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+    post:
+      summary: Create a new product
+      operationId: controllers_product_controller_create_product
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+            x-body-name: product
+        required: true
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        "400":
+          description: Invalid input
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /products/{product_id}:
+    get:
+      summary: Get a product by id
+      operationId: controllers_product_controller_get_product_by_id
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        "404":
+          description: Product not found
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+    put:
+      summary: Update a product
+      operationId: controllers_product_controller_update_product
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdate'
+            x-body-name: product
+        required: true
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        "400":
+          description: Invalid input
+        "404":
+          description: Product not found
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+    delete:
+      summary: Delete a product
+      operationId: controllers_product_controller_delete_product
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Product deleted
+        "404":
+          description: Product not found
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+components:
+  schemas:
+    Product:
+      required:
+      - id
+      - inStock
+      - name
+      - price
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        inStock:
+          type: boolean
+      example:
+        price: 0.8008282
+        name: name
+        description: description
+        inStock: true
+        id: id
+    ProductCreate:
+      required:
+      - name
+      - price
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        inStock:
+          type: boolean
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        inStock:
+          type: boolean
+    inline_response_200:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+      example:
+        status: ok
+

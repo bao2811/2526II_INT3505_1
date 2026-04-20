@@ -1,0 +1,21 @@
+{
+  "id": "71e1cd8a-8f8f-4a58-9a2f-2bff3d503489",
+  "name": "Week 8 Local Environment",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2026-04-20T14:00:00.000Z",
+  "_postman_exported_using": "Postman/11.0.0"
+}

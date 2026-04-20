@@ -78,62 +78,79 @@ components:
 
 ## 2) Sinh backend bằng Swagger Codegen (Python Flask)
 
-### Cách A: Chạy script có sẵn
+### Tất cả dòng lệnh (PowerShell) áp dụng cho `tuan7`
+
+Chạy lần lượt các lệnh sau trong PowerShell:
 
 ```powershell
-cd tuan7
-./generate_server.ps1
+cd g:\2526II_INT3505_1\tuan7
+```
+
+Kiểm tra Java (Swagger Codegen cần Java):
+
+```powershell
+java -version
+```
+
+### Cách A: Chạy script có sẵn (khuyến nghị)
+
+```powershell
+.\generate_server.ps1
 ```
 
 Script sẽ tạo thư mục `generated-flask-server`.
 
 ### Cách B: Dùng JAR trực tiếp
 
-```bash
-cd tuan7
-curl -L -o swagger-codegen-cli.jar https://repo1.maven.org/maven2/io/swagger/codegen/v3/swagger-codegen-cli/3.0.52/swagger-codegen-cli-3.0.52.jar
+```powershell
+Invoke-WebRequest -Uri "https://repo1.maven.org/maven2/io/swagger/codegen/v3/swagger-codegen-cli/3.0.52/swagger-codegen-cli-3.0.52.jar" -OutFile "swagger-codegen-cli.jar"
 
-java -jar swagger-codegen-cli.jar generate \
-  -i openapi.yaml \
-  -l python-flask \
+java -jar swagger-codegen-cli.jar generate `
+  -i openapi.yaml `
+  -l python-flask `
   -o generated-flask-server
 ```
 
 ### Cách C: Dùng Docker (không cần cài Java local)
 
-```bash
-docker run --rm -v ${PWD}:/local swaggerapi/swagger-codegen-cli-v3 generate \
-  -i /local/openapi.yaml \
-  -l python-flask \
+```powershell
+docker run --rm -v ${PWD}:/local swaggerapi/swagger-codegen-cli-v3 generate `
+  -i /local/openapi.yaml `
+  -l python-flask `
   -o /local/generated-flask-server
+```
+
+### Kiểm tra kết quả sinh code
+
+```powershell
+Get-ChildItem .\generated-flask-server
 ```
 
 ## 3) Cài đặt và chạy backend thực hành
 
-```bash
-cd tuan7
+```powershell
 python -m venv .venv
-.venv\Scripts\activate
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
 Tạo file `.env` từ `.env.example`:
 
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017
-MONGODB_DB=tuan7_products
+```powershell
+if (Test-Path .\.env.example) {
+  Copy-Item .\.env.example .\.env
+}
 ```
 
 Nếu chưa có MongoDB local, chạy bằng Docker:
 
-```bash
+```powershell
 docker run -d --name mongo-tuan7 -p 27017:27017 mongo:7
 ```
 
 Chạy ứng dụng:
 
-```bash
+```powershell
 python app.py
 ```
 
@@ -211,10 +228,16 @@ Sau buổi 7, bạn có một backend service có thể:
 - Lưu và truy xuất dữ liệu thật từ MongoDB
 - Vận hành đầy đủ CRUD cho resource `Product`
 
-cd tuan7
+## Tóm tắt lệnh chạy nhanh (PowerShell)
+
+```powershell
+cd g:\2526II_INT3505_1\tuan7
+java -version
+.\generate_server.ps1
 python -m venv .venv
-.venv\Scripts\activate
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-copy .env.example .env
-Khởi động MongoDB local hoặc Docker
+if (Test-Path .\.env.example) { Copy-Item .\.env.example .\.env }
+docker run -d --name mongo-tuan7 -p 27017:27017 mongo:7
 python app.py
+```
