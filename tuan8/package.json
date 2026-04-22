@@ -1,0 +1,17 @@
+{
+  "name": "tuan8",
+  "version": "1.0.0",
+  "description": "Buổi 8 tập trung vào kiểm thử API tự động và đo chất lượng dịch vụ trước khi triển khai.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "newman": "^4.6.1",
+    "newman-reporter-html": "^1.0.5"
+  }
+}

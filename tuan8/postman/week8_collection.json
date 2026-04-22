@@ -2,6 +2,7 @@
   "info": {
     "_postman_id": "2a942030-715f-4f6f-9944-caecfe91a69f",
     "name": "Week 8 - Product API Testing",
+    "description": "Collection Postman cho bai thuc hanh tuan 8. Bao gom 5 endpoint CRUD va cac test script kiem tra status code, response time, schema co ban va luong du lieu tao-cap nhat-xoa.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -12,9 +13,14 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/products",
-          "host": ["{{baseUrl}}"],
-          "path": ["products"]
-        }
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "products"
+          ]
+        },
+        "description": "Lay danh sach san pham va kiem tra cau truc response tong quan."
       },
       "event": [
         {
@@ -26,14 +32,43 @@
               "  pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"Response time < 500ms\", function () {",
-              "  pm.expect(pm.response.responseTime).to.be.below(500);",
+              "pm.test(\"Response time below configured threshold\", function () {",
+              "  const threshold = Number(pm.environment.get(\"responseTimeThreshold\") || 500);",
+              "  pm.expect(pm.response.responseTime).to.be.below(threshold);",
               "});",
               "",
-              "pm.test(\"Response has data array\", function () {",
+              "pm.test(\"Content-Type is JSON\", function () {",
+              "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+              "});",
+              "",
+              "pm.test(\"Body has count and data array\", function () {",
               "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property(\"count\");",
+              "  pm.expect(body.count).to.be.a(\"number\");",
               "  pm.expect(body).to.have.property(\"data\");",
               "  pm.expect(body.data).to.be.an(\"array\");",
+              "  pm.expect(body.count).to.eql(body.data.length);",
+              "  pm.environment.set(\"productCountBeforeCreate\", String(body.count));",
+              "});",
+              "",
+              "pm.test(\"Each product has required fields when list is not empty\", function () {",
+              "  const body = pm.response.json();",
+              "  if (body.data.length === 0) {",
+              "    pm.expect(body.data.length).to.eql(0);",
+              "    return;",
+              "  }",
+              "",
+              "  const sample = body.data[0];",
+              "  pm.expect(sample).to.have.property(\"id\");",
+              "  pm.expect(sample.id).to.be.a(\"string\").and.not.empty;",
+              "  pm.expect(sample).to.have.property(\"name\");",
+              "  pm.expect(sample.name).to.be.a(\"string\").and.not.empty;",
+              "  pm.expect(sample).to.have.property(\"description\");",
+              "  pm.expect(sample.description).to.be.a(\"string\");",
+              "  pm.expect(sample).to.have.property(\"price\");",
+              "  pm.expect(sample.price).to.be.a(\"number\");",
+              "  pm.expect(sample).to.have.property(\"inStock\");",
+              "  pm.expect(sample.inStock).to.be.a(\"boolean\");",
               "});"
             ]
           }
@@ -52,15 +87,31 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Postman Product\",\n  \"description\": \"Created by Postman\",\n  \"price\": 15.5,\n  \"inStock\": true\n}"
+          "raw": "{\n  \"name\": \"{{createdProductName}}\",\n  \"description\": \"Created by Postman test suite\",\n  \"price\": 15.5,\n  \"inStock\": true\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/products",
-          "host": ["{{baseUrl}}"],
-          "path": ["products"]
-        }
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "products"
+          ]
+        },
+        "description": "Tao san pham moi va luu id de dung cho cac request sau."
       },
       "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now();",
+              "pm.environment.set(\"createdProductName\", `Postman Product ${suffix}`);",
+              "pm.environment.set(\"updatedProductName\", `Postman Product Updated ${suffix}`);"
+            ]
+          }
+        },
         {
           "listen": "test",
           "script": {
@@ -70,13 +121,18 @@
               "  pm.response.to.have.status(201);",
               "});",
               "",
-              "pm.test(\"Response time < 500ms\", function () {",
-              "  pm.expect(pm.response.responseTime).to.be.below(500);",
+              "pm.test(\"Response time below configured threshold\", function () {",
+              "  const threshold = Number(pm.environment.get(\"responseTimeThreshold\") || 500);",
+              "  pm.expect(pm.response.responseTime).to.be.below(threshold);",
               "});",
               "",
-              "pm.test(\"Created product has id\", function () {",
+              "pm.test(\"Created product contains required fields\", function () {",
               "  const body = pm.response.json();",
-              "  pm.expect(body).to.have.property(\"id\");",
+              "  pm.expect(body.id).to.be.a(\"string\").and.not.empty;",
+              "  pm.expect(body.name).to.eql(pm.environment.get(\"createdProductName\"));",
+              "  pm.expect(body.description).to.eql(\"Created by Postman test suite\");",
+              "  pm.expect(body.price).to.eql(15.5);",
+              "  pm.expect(body.inStock).to.eql(true);",
               "  pm.environment.set(\"productId\", body.id);",
               "});"
             ]
@@ -91,9 +147,15 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/products/{{productId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["products", "{{productId}}"]
-        }
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "products",
+            "{{productId}}"
+          ]
+        },
+        "description": "Lay san pham vua tao theo id."
       },
       "event": [
         {
@@ -105,13 +167,18 @@
               "  pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"Response time < 500ms\", function () {",
-              "  pm.expect(pm.response.responseTime).to.be.below(500);",
+              "pm.test(\"Response time below configured threshold\", function () {",
+              "  const threshold = Number(pm.environment.get(\"responseTimeThreshold\") || 500);",
+              "  pm.expect(pm.response.responseTime).to.be.below(threshold);",
               "});",
               "",
-              "pm.test(\"Response id matches environment\", function () {",
+              "pm.test(\"Returned product matches the created product\", function () {",
               "  const body = pm.response.json();",
               "  pm.expect(body.id).to.eql(pm.environment.get(\"productId\"));",
+              "  pm.expect(body.name).to.eql(pm.environment.get(\"createdProductName\"));",
+              "  pm.expect(body.description).to.eql(\"Created by Postman test suite\");",
+              "  pm.expect(body.price).to.eql(15.5);",
+              "  pm.expect(body.inStock).to.eql(true);",
               "});"
             ]
           }
@@ -130,13 +197,19 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Postman Product Updated\",\n  \"description\": \"Updated by Postman\",\n  \"price\": 20,\n  \"inStock\": false\n}"
+          "raw": "{\n  \"name\": \"{{updatedProductName}}\",\n  \"description\": \"Updated by Postman test suite\",\n  \"price\": 20,\n  \"inStock\": false\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/products/{{productId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["products", "{{productId}}"]
-        }
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "products",
+            "{{productId}}"
+          ]
+        },
+        "description": "Cap nhat san pham theo id va kiem tra gia tri da doi."
       },
       "event": [
         {
@@ -148,13 +221,17 @@
               "  pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"Response time < 500ms\", function () {",
-              "  pm.expect(pm.response.responseTime).to.be.below(500);",
+              "pm.test(\"Response time below configured threshold\", function () {",
+              "  const threshold = Number(pm.environment.get(\"responseTimeThreshold\") || 500);",
+              "  pm.expect(pm.response.responseTime).to.be.below(threshold);",
               "});",
               "",
-              "pm.test(\"Product is updated\", function () {",
+              "pm.test(\"Product is updated successfully\", function () {",
               "  const body = pm.response.json();",
-              "  pm.expect(body.name).to.eql(\"Postman Product Updated\");",
+              "  pm.expect(body.id).to.eql(pm.environment.get(\"productId\"));",
+              "  pm.expect(body.name).to.eql(pm.environment.get(\"updatedProductName\"));",
+              "  pm.expect(body.description).to.eql(\"Updated by Postman test suite\");",
+              "  pm.expect(body.price).to.eql(20);",
               "  pm.expect(body.inStock).to.eql(false);",
               "});"
             ]
@@ -169,9 +246,15 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/products/{{productId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["products", "{{productId}}"]
-        }
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "products",
+            "{{productId}}"
+          ]
+        },
+        "description": "Xoa san pham va xac nhan GET lai se tra ve 404."
       },
       "event": [
         {
@@ -183,14 +266,28 @@
               "  pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"Response time < 500ms\", function () {",
-              "  pm.expect(pm.response.responseTime).to.be.below(500);",
+              "pm.test(\"Response time below configured threshold\", function () {",
+              "  const threshold = Number(pm.environment.get(\"responseTimeThreshold\") || 500);",
+              "  pm.expect(pm.response.responseTime).to.be.below(threshold);",
               "});",
               "",
-              "pm.test(\"Delete response has deleted object\", function () {",
+              "pm.test(\"Delete response returns deleted object\", function () {",
               "  const body = pm.response.json();",
-              "  pm.expect(body).to.have.property(\"deleted\");",
+              "  pm.expect(body.message).to.eql(\"Deleted successfully\");",
               "  pm.expect(body.deleted.id).to.eql(pm.environment.get(\"productId\"));",
+              "  pm.expect(body.deleted.name).to.eql(pm.environment.get(\"updatedProductName\"));",
+              "});",
+              "",
+              "pm.test(\"Deleted product can no longer be fetched\", function (done) {",
+              "  const productId = pm.environment.get(\"productId\");",
+              "  pm.sendRequest(`${pm.environment.get(\"baseUrl\")}/products/${productId}`, function (err, res) {",
+              "    pm.expect(err).to.equal(null);",
+              "    pm.expect(res).to.have.property(\"code\", 404);",
+              "    const body = res.json();",
+              "    pm.expect(body.error).to.eql(\"Product not found\");",
+              "    pm.environment.unset(\"productId\");",
+              "    done();",
+              "  });",
               "});"
             ]
           }

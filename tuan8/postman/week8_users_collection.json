@@ -1,0 +1,281 @@
+{
+  "info": {
+    "_postman_id": "e216d2ae-1842-4cbb-a76f-a40d43a3481e",
+    "name": "Week 8 - JSONPlaceholder Users Testing",
+    "description": "Collection Postman mau cho bai thuc hanh tuan 8 su dung JSONPlaceholder va resource /users. File nay tu chua baseUrl de import vao Postman la co the chay ngay.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://jsonplaceholder.typicode.com"
+    },
+    {
+      "key": "responseTimeThreshold",
+      "value": "1000"
+    },
+    {
+      "key": "userId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. GET /users",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users"
+          ]
+        },
+        "description": "Lay danh sach users va kiem tra schema co ban."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time below configured threshold\", function () {",
+              "  const threshold = Number(pm.collectionVariables.get(\"responseTimeThreshold\") || 500);",
+              "  pm.expect(pm.response.responseTime).to.be.below(threshold);",
+              "});",
+              "",
+              "pm.test(\"Body is a non-empty array\", function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.be.an(\"array\");",
+              "  pm.expect(body.length).to.be.greaterThan(0);",
+              "});",
+              "",
+              "pm.test(\"First user has required fields\", function () {",
+              "  const user = pm.response.json()[0];",
+              "  pm.expect(user.id).to.be.a(\"number\");",
+              "  pm.expect(user.name).to.be.a(\"string\").and.not.empty;",
+              "  pm.expect(user.username).to.be.a(\"string\").and.not.empty;",
+              "  pm.expect(user.email).to.be.a(\"string\").and.include(\"@\");",
+              "  pm.expect(user.address).to.be.an(\"object\");",
+              "  pm.expect(user.company).to.be.an(\"object\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. GET /users/1",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}"
+          ]
+        },
+        "description": "Lay chi tiet user theo id."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time below configured threshold\", function () {",
+              "  const threshold = Number(pm.collectionVariables.get(\"responseTimeThreshold\") || 500);",
+              "  pm.expect(pm.response.responseTime).to.be.below(threshold);",
+              "});",
+              "",
+              "pm.test(\"Returned user matches requested id\", function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.id).to.eql(Number(pm.collectionVariables.get(\"userId\")));",
+              "  pm.expect(body.name).to.be.a(\"string\").and.not.empty;",
+              "  pm.expect(body.username).to.be.a(\"string\").and.not.empty;",
+              "  pm.expect(body.email).to.be.a(\"string\").and.include(\"@\");",
+              "});",
+              "",
+              "pm.test(\"Address and company objects are present\", function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.address).to.be.an(\"object\");",
+              "  pm.expect(body.address.city).to.be.a(\"string\");",
+              "  pm.expect(body.company).to.be.an(\"object\");",
+              "  pm.expect(body.company.name).to.be.a(\"string\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. POST /users",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json; charset=UTF-8"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Le Thi Test\",\n  \"username\": \"lethitest\",\n  \"email\": \"lethi.test@example.com\",\n  \"address\": {\n    \"street\": \"123 Nguyen Trai\",\n    \"suite\": \"Apt. 8\",\n    \"city\": \"Ho Chi Minh\",\n    \"zipcode\": \"700000\"\n  },\n  \"phone\": \"0900000000\",\n  \"website\": \"example.vn\",\n  \"company\": {\n    \"name\": \"INT3505 QA Team\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users"
+          ]
+        },
+        "description": "Tao user moi tren JSONPlaceholder. API nay fake write nen chi dung de test request/response."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response time below configured threshold\", function () {",
+              "  const threshold = Number(pm.collectionVariables.get(\"responseTimeThreshold\") || 500);",
+              "  pm.expect(pm.response.responseTime).to.be.below(threshold);",
+              "});",
+              "",
+              "pm.test(\"Created user payload is echoed back\", function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.id).to.exist;",
+              "  pm.expect(body.name).to.eql(\"Le Thi Test\");",
+              "  pm.expect(body.username).to.eql(\"lethitest\");",
+              "  pm.expect(body.email).to.eql(\"lethi.test@example.com\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. PUT /users/1",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json; charset=UTF-8"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 1,\n  \"name\": \"Le Thi Updated\",\n  \"username\": \"lethiupdated\",\n  \"email\": \"updated@example.com\",\n  \"address\": {\n    \"street\": \"456 Tran Hung Dao\",\n    \"suite\": \"Suite 10\",\n    \"city\": \"Da Nang\",\n    \"zipcode\": \"550000\"\n  },\n  \"phone\": \"0911111111\",\n  \"website\": \"updated.vn\",\n  \"company\": {\n    \"name\": \"INT3505 Updated Team\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}"
+          ]
+        },
+        "description": "Cap nhat user co san. JSONPlaceholder fake write nen response duoc tra ve de kiem thu request."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time below configured threshold\", function () {",
+              "  const threshold = Number(pm.collectionVariables.get(\"responseTimeThreshold\") || 500);",
+              "  pm.expect(pm.response.responseTime).to.be.below(threshold);",
+              "});",
+              "",
+              "pm.test(\"Updated user payload is returned\", function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.id).to.eql(Number(pm.collectionVariables.get(\"userId\")));",
+              "  pm.expect(body.name).to.eql(\"Le Thi Updated\");",
+              "  pm.expect(body.username).to.eql(\"lethiupdated\");",
+              "  pm.expect(body.email).to.eql(\"updated@example.com\");",
+              "  pm.expect(body.address.city).to.eql(\"Da Nang\");",
+              "  pm.expect(body.company.name).to.eql(\"INT3505 Updated Team\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. DELETE /users/1",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}"
+          ]
+        },
+        "description": "Xoa user. JSONPlaceholder fake write nen chu yeu kiem tra status code va response hop le."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time below configured threshold\", function () {",
+              "  const threshold = Number(pm.collectionVariables.get(\"responseTimeThreshold\") || 500);",
+              "  pm.expect(pm.response.responseTime).to.be.below(threshold);",
+              "});",
+              "",
+              "pm.test(\"Delete response body is valid\", function () {",
+              "  const text = pm.response.text();",
+              "  if (!text) {",
+              "    pm.expect(text).to.eql(\"\");",
+              "    return;",
+              "  }",
+              "",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.be.an(\"object\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
